@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import os
+import uuid
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
@@ -15,30 +15,16 @@ try:
     from app.core.db import Base, get_async_session
 except (NameError, ImportError):
     raise AssertionError(
-        'Не обнаружены объекты приложений `Base, get_async_session`. '
+        'Не обнаружены объекты `Base, get_async_session`. '
         'Создайте эти объекты по пути `app.core.db`',
     )
 
 try:
-    from app.api.endpoints.charity_project import (
-        current_superuser as ch_pr_current_superuser,
-        current_user as ch_pr_current_user
-    )
+    from app.core.user import current_superuser, current_user
 except (NameError, ImportError):
     raise AssertionError(
-        'Не обнаружены объекты приложений `current_superuser, current_user`.'
-        'Создайте эти объекты по пути `app.api.endpoints.charity_project`',
-    )
-
-try:
-    from app.api.endpoints.donation import (
-        current_superuser as don_current_superuser,
-        current_user as don_current_user
-    )
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не обнаружены объекты приложений `current_superuser, current_user`.'
-        'Создайте эти объекты по пути `app.api.endpoints.donation`',
+        'Не обнаружены объекты `current_superuser, current_user`.'
+        'Создайте эти объекты по пути `app.code.user`',
     )
 
 try:
@@ -69,11 +55,14 @@ password_hash = password_helper.hash('chimichangas4life')
 class User(models.BaseUser):
     pass
 
+
 class UserDB(User, models.BaseUserDB):
     pass
 
 
+user_uuid4 = uuid.uuid4()
 user = UserDB(
+    id=user_uuid4,
     email='dead@pool.com',
     hashed_password=str(password_hash),
     is_active=True,
@@ -81,7 +70,9 @@ user = UserDB(
     is_superuser=False,
 )
 
+superuser_uuid4 = uuid.uuid4()
 superuser = UserDB(
+    id=superuser_uuid4,
     email='superdead@pool.com',
     hashed_password=str(password_hash),
     is_active=True,
@@ -108,8 +99,7 @@ async def init_db():
 def user_client():
     app.dependency_overrides = {}
     app.dependency_overrides[get_async_session] = override_db
-    app.dependency_overrides[don_current_user] = lambda: user
-    app.dependency_overrides[ch_pr_current_user] = lambda: user
+    app.dependency_overrides[current_user] = lambda: user
     with TestClient(app) as client:
         yield client
 
@@ -118,8 +108,7 @@ def user_client():
 def superuser_client():
     app.dependency_overrides = {}
     app.dependency_overrides[get_async_session] = override_db
-    app.dependency_overrides[don_current_superuser] = lambda: superuser
-    app.dependency_overrides[ch_pr_current_superuser] = lambda: superuser
+    app.dependency_overrides[current_superuser] = lambda: superuser
     with TestClient(app) as client:
         yield client
 
@@ -178,7 +167,7 @@ def donation(mixer):
         full_amount=1000000,
         comment='To you for chimichangas',
         create_date=datetime.strptime('2019-09-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),
-        user_email='evil@pool.com',
+        user_id=superuser_uuid4,
         invest_amount=100,
         fully_invested=False,
         close_date=datetime.strptime('2019-08-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),
@@ -192,7 +181,7 @@ def dead_pool_donation(mixer):
         full_amount=1000000,
         comment='To you for chimichangas',
         create_date=datetime.strptime('2019-09-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),
-        user_email='dead@pool.com',
+        user_id=user_uuid4,
         invest_amount=100,
         fully_invested=False,
         close_date=datetime.strptime('2019-08-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),

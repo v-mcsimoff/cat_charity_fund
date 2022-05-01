@@ -1,7 +1,6 @@
 import pytest
 
 
-# TODO [] - Помоему тут не правильное поле. Должно быть invested_amound
 @pytest.mark.parametrize('json, keys, expected_data', [
     (
         {'full_amount': 10},
@@ -65,7 +64,6 @@ def test_get_user_donation(user_client, dead_pool_donation):
     assert sorted(list(data.keys())) == keys, (
         f'При получении списка донатов пользователя в ответе должны быть ключи `{keys}`'
     )
-    # TODO [] - Почему тут поле full_amount?
     assert response.json() == [{
         'comment': 'To you for chimichangas',
         'create_date': '2019-09-24T14:15:22',
@@ -93,7 +91,7 @@ def test_get_all_donations(superuser_client, donation):
         'comment',
         'id',
         'create_date',
-        'user_email',
+        'user_id',
         'invested_amount',
         'fully_invested',
         'close_date',
@@ -101,7 +99,9 @@ def test_get_all_donations(superuser_client, donation):
     assert sorted(list(data.keys())) == keys, (
         f'При получении списка всех донатов в ответе должны быть ключи `{keys}`'
     )
-    assert response.json() == [{
+    data = response.json()
+    data[0].pop('user_id')
+    assert data == [{
         'close_date': '2019-08-24T14:15:22',
         'comment': 'To you for chimichangas',
         'create_date': '2019-09-24T14:15:22',
@@ -109,5 +109,4 @@ def test_get_all_donations(superuser_client, donation):
         'fully_invested': False,
         'id': 1,
         'invested_amount': 0,
-        'user_email': 'evil@pool.com',
     }], 'При получении списка всех донатов тело ответа API отличается от ожидаемого.'

@@ -20,7 +20,6 @@ def test_get_charity_project(user_client, charity_project):
         'description',
         'full_amount',
         'id',
-        'user_email',
         'invested_amount',
         'fully_invested',
         'create_date',
@@ -38,7 +37,6 @@ def test_get_charity_project(user_client, charity_project):
         'id': 1,
         'invested_amount': 0,
         'name': 'chimichangas4life',
-        'user_email': 'dead@pool.com',
     }], 'При GET запросе для проекта тело ответа API отличается от ожидаемого.'
 
 
@@ -61,7 +59,6 @@ def test_get_all_charity_project(user_client, charity_project, charity_project_n
         'description',
         'full_amount',
         'id',
-        'user_email',
         'invested_amount',
         'fully_invested',
         'create_date',
@@ -80,7 +77,6 @@ def test_get_all_charity_project(user_client, charity_project, charity_project_n
             'id': 1,
             'invested_amount': 0,
             'name': 'chimichangas4life',
-            'user_email': 'dead@pool.com',
         },
         {
             'close_date': '2019-08-24T14:15:22',
@@ -91,12 +87,9 @@ def test_get_all_charity_project(user_client, charity_project, charity_project_n
             'id': 2,
             'invested_amount': 0,
             'name': 'nunchaku',
-            'user_email': 'evil@pool.com',
         }], 'При получении всех проектов тело ответа API отличается от ожидаемого.'
 
 
-# FIXME [] - Не соотвествует спецификации
-# FIXME [] - Почему при создании проекта статус ответа 200, а не 201
 def test_create_charity_project(superuser_client):
     response = superuser_client.post('/charity_project/', json={
         'name': 'Мертвый Бассейн',
@@ -115,7 +108,6 @@ def test_create_charity_project(superuser_client):
         'fully_invested',
         'id',
         'invested_amount',
-        'user_email',
     ])
     assert sorted(list(data.keys())) == keys, (
         f'При создании проекта в ответе должны быть ключи `{keys}`'
@@ -128,7 +120,6 @@ def test_create_charity_project(superuser_client):
         'id': 1,
         'invested_amount': 0,
         'name': 'Мертвый Бассейн',
-        'user_email': 'superdead@pool.com',
     }, 'При создании проекта тело ответа API отличается от ожидаемого.'
 
 
@@ -180,7 +171,6 @@ def test_delete_charity_project(superuser_client, charity_project):
         'description',
         'full_amount',
         'id',
-        'user_email',
         'invested_amount',
         'fully_invested',
         'create_date',
@@ -194,7 +184,6 @@ def test_delete_charity_project(superuser_client, charity_project):
         'description': 'Huge fan of chimichangas. Wanna buy a lot',
         'full_amount': 1000000,
         'id': 1,
-        'user_email': 'dead@pool.com',
         'invested_amount': 0,
         'fully_invested': False,
         'create_date': '2019-08-24T14:15:22',
@@ -219,7 +208,6 @@ def test_delete_charity_project_invalid_id(superuser_client):
         'description': 'Huge fan of chimichangas. Wanna buy a lot',
         'full_amount': 10,
         'id': 1,
-        'user_email': 'dead@pool.com',
         'invested_amount': 0,
         'fully_invested': False,
         'create_date': '2019-08-24T14:15:22',
@@ -230,7 +218,6 @@ def test_delete_charity_project_invalid_id(superuser_client):
         'description': 'Huge fan of chimichangas. Wanna buy a lot',
         'full_amount': 1000000,
         'id': 1,
-        'user_email': 'dead@pool.com',
         'invested_amount': 0,
         'fully_invested': False,
         'create_date': '2019-08-24T14:15:22',
@@ -241,7 +228,6 @@ def test_delete_charity_project_invalid_id(superuser_client):
         'description': 'Give me the money!',
         'full_amount': 1000000,
         'id': 1,
-        'user_email': 'dead@pool.com',
         'invested_amount': 0,
         'fully_invested': False,
         'create_date': '2019-08-24T14:15:22',
@@ -259,7 +245,6 @@ def test_update_charity_project(superuser_client, charity_project, json, expecte
         'description',
         'full_amount',
         'id',
-        'user_email',
         'invested_amount',
         'fully_invested',
         'create_date',
