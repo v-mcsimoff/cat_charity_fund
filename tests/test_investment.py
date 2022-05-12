@@ -18,7 +18,7 @@ def test_donation_move_second_project_first_full(
         except KeyError:
             raise AssertionError(
                 'При получении всех проектов в ответе отсутствуют '
-                'ключи `close_date, create_date`',
+                'ключи `close_date` и `create_date`.',
             )
         return record
     data = list(map(del_date, data))
@@ -46,8 +46,9 @@ def test_donation_create_project_doesnt_exists(superuser_client, donation):
     response_donation = superuser_client.get('/donation/')
     data_donation = response_donation.json()
     assert len(data_donation) == 1, (
-        'Если в настоящий момент нет открытых проектов, '
-        'но инвестиция была произведена, то все деньги должны ожидать открытия нового проекта'
+        'Если получено пожертвование, но открытых проектов нет, '
+        'вся сумма из пожертвования должна ожидать открытия нового проекта.'
+        
     )
     superuser_client.post('/charity_project/', json={
         'name': 'Мертвый Бассейн',
@@ -57,7 +58,7 @@ def test_donation_create_project_doesnt_exists(superuser_client, donation):
     response_project = superuser_client.get('/charity_project/')
     data_project = response_project.json()
     assert len(data_project) == 1, (
-        'Если в настоящий момент нет открытых проектов, '
-        'то все деньги должны ожидать открытия нового проекта. '
-        'Как только проект появился, инвестиции должны быть направлены на этот проект.'
+        'Если открытых проектов нет - '
+        'все свободные деньги должны ожидать открытия нового проекта. '
+        'При создании нового проекта свободные инвестиции должны быть направлены на этот проект.'
     )

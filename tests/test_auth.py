@@ -5,12 +5,12 @@ def test_register(user_client):
         'password': 'chimichangas4life',
     })
     assert response.status_code == 201, (
-        'При регистрации пользователя должен возвращаться статус-код 201'
+        'При регистрации пользователя должен возвращаться статус-код 201.'
     )
     data = response.json()
     keys = sorted(['id', 'email', 'is_active', 'is_superuser', 'is_verified'])
     assert sorted(list(data.keys())) == keys, (
-        f'При регистрации пользователя в ответе должны быть ключи `{keys}`'
+        f'При регистрации пользователя в ответе должны быть ключи `{keys}`.'
     )
     data.pop('id')
     assert data == {
@@ -21,17 +21,17 @@ def test_register(user_client):
     }, 'При регистрации пользователя тело ответа API отличается от ожидаемого.'
 
 
-def test_registed_invalid_pass(user_client):
+def test_register_invalid_pass(user_client):
     response = user_client.post('/auth/register', json={
         'email': 'dead@pool.com',
         'password': '$',
     })
     assert response.status_code == 400, (
-        'При некорректной регистрации пользователя должен возвращаться статус-код 400'
+        'При некорректной регистрации пользователя должен возвращаться статус-код 400.'
     )
     data = response.json()
     assert list(data.keys()) == ['detail'], (
-        'При некорректной пользователя в ответе должен быть ключ `detail`'
+        'При некорректной регистрации пользователя в ответе должен быть ключ `detail`.'
     )
     assert data == {
         'detail': {

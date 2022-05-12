@@ -1,3 +1,4 @@
+import contextlib
 from datetime import datetime
 
 import uuid
@@ -10,13 +11,15 @@ from mixer.backend.sqlalchemy import Mixer as _mixer
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from app.schemas.user import UserCreate
+from app.core.user import get_user_db, get_user_manager
 
 try:
     from app.core.db import Base, get_async_session
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружены объекты `Base, get_async_session`. '
-        'Создайте эти объекты по пути `app.core.db`',
+        'Проверьте и поправьте: они должны быть доступны в модуле `app.core.db`.',
     )
 
 try:
@@ -24,7 +27,7 @@ try:
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружены объекты `current_superuser, current_user`.'
-        'Создайте эти объекты по пути `app.code.user`',
+        'Проверьте и поправьте: они должны быть доступны в модуле `app.code.user`',
     )
 
 try:
@@ -32,7 +35,7 @@ try:
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружен объект приложения `app`.'
-        'Создайте эти объекты по пути `app.main`',
+        'Проверьте и поправьте: он должен быть доступен в модуле `app.main`.',
     )
 
 
@@ -43,6 +46,7 @@ engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
 )
+
 TestingSessionLocal = sessionmaker(
     class_=AsyncSession, autocommit=False, autoflush=False, bind=engine,
 )
@@ -50,6 +54,9 @@ TestingSessionLocal = sessionmaker(
 
 password_helper = PasswordHelper()
 password_hash = password_helper.hash('chimichangas4life')
+
+get_user_db_context = contextlib.asynccontextmanager(get_user_db)
+get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
 class User(models.BaseUser):
@@ -105,6 +112,52 @@ def user_client():
 
 
 @pytest.fixture
+def test_client():
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture
+async def superuser(user_client):
+    async with TestingSessionLocal() as session:
+        async with get_user_db_context(session) as user_db:
+            async with get_user_manager_context(user_db) as user_manager:
+                await user_manager.create(
+                    UserCreate(
+                        id=uuid.uuid4(),
+                        email='superdead@pool.com',
+                        password='chimichangas4life',
+                        is_active=True,
+                        is_verified=True,
+                        is_superuser=True,
+                    )
+                )
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    response = user_client.post("/auth/jwt/login", data={"username": "superdead@pool.com", "password": 'chimichangas4life'}, headers=headers)
+    return response.json()['access_token']
+
+
+@pytest.fixture
+async def simple_user(user_client):
+    async with TestingSessionLocal() as session:
+        async with get_user_db_context(session) as user_db:
+            async with get_user_manager_context(user_db) as user_manager:
+                await user_manager.create(
+                    UserCreate(
+                        id=uuid.uuid4(),
+                        email='dead@pool.com',
+                        password='chimichangas4life',
+                        is_active=True,
+                        is_verified=True,
+                        is_superuser=False,
+                    )
+                )
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    response = user_client.post("/auth/jwt/login", data={"username": "dead@pool.com", "password": 'chimichangas4life'}, headers=headers)
+    return response.json()['access_token']
+
+
+@pytest.fixture
 def superuser_client():
     app.dependency_overrides = {}
     app.dependency_overrides[get_async_session] = override_db
@@ -118,6 +171,12 @@ def mixer():
     engine = create_engine('sqlite:///./test.db')
     session = sessionmaker(bind=engine)
     return _mixer(session=session(), commit=True)
+
+
+@pytest.fixture
+async def session():
+    async with TestingSessionLocal() as session:
+        yield session
 
 
 @pytest.fixture
@@ -164,10 +223,11 @@ def small_fully_charity_project(mixer):
 def donation(mixer):
     return mixer.blend(
         'app.models.donation.Donation',
+        user_id=user_uuid4,
         full_amount=1000000,
         comment='To you for chimichangas',
         create_date=datetime.strptime('2019-09-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),
-        user_id=superuser_uuid4,
+        user_email='evil@pool.com',
         invest_amount=100,
         fully_invested=False,
         close_date=datetime.strptime('2019-08-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),
@@ -178,10 +238,11 @@ def donation(mixer):
 def dead_pool_donation(mixer):
     return mixer.blend(
         'app.models.donation.Donation',
+        user_id=user_uuid4,
         full_amount=1000000,
         comment='To you for chimichangas',
         create_date=datetime.strptime('2019-09-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),
-        user_id=user_uuid4,
+        user_email='dead@pool.com',
         invest_amount=100,
         fully_invested=False,
         close_date=datetime.strptime('2019-08-24T14:15:22Z', '%Y-%m-%dT%H:%M:%SZ'),

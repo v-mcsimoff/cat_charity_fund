@@ -16,15 +16,15 @@ import pytest
 def test_create_donation(user_client, json, keys, expected_data):
     response = user_client.post('/donation/', json=json)
     assert response.status_code == 200, (
-        'При создании доната должен возвращаться статус-код 201'
+        'При создании пожертвования должен возвращаться статус-код 200.'
     )
     data = response.json()
     assert sorted(list(data.keys())) == sorted(keys), (
-        f'При создании доната в ответе должны быть ключи `{keys}`'
+        f'При создании пожертвования в ответе должны быть ключи `{keys}`.'
     )
     data.pop('create_date')
     assert data == expected_data, (
-        'При создании доната тело ответа API отличается от ожидаемого.'
+        'При создании пожертвования тело ответа API отличается от ожидаемого.'
     )
 
 
@@ -36,7 +36,7 @@ def test_create_donation(user_client, json, keys, expected_data):
 def test_create_donation_incorrect(user_client, json):
     response = user_client.post('/donation/', json=json)
     assert response.status_code == 422, (
-        'При некорректном теле POST-запроса к эндпоинту `/donation/` в ответ '
+        'При некорректном теле POST-запроса к эндпоинту `/donation/` '
         'должен вернуться статус-код 422.'
     )
 
@@ -44,15 +44,14 @@ def test_create_donation_incorrect(user_client, json):
 def test_get_user_donation(user_client, dead_pool_donation):
     response = user_client.get('/donation/my')
     assert response.status_code == 200, (
-        'При получении списка донатов пользователя должен возвращаться статус-код 200'
+        'При получении списка пожертвований пользователя должен вернуться статус-код 200.'
     )
     assert isinstance(response.json(), list), (
-        'При получении списка донатов пользователя должен возвращаться объект типа `list`'
+        'При получении списка пожертвований пользователя должен возвращаться объект типа `list`.'
     )
     assert len(response.json()) == 1, (
-        'При GET запросе для донатов пользователя список в ответе пуст. '
-        'Это означает что фикстура не создала запись в базе данных, '
-        'проверьте вашу модель `Donation`'
+        'При корректном POST-запросе к эндпоинту `/charity_project/` не создаётся объект в БД.'
+        'Проверьте модель `Donation`.'
     )
     data = response.json()[0]
     keys = sorted([
@@ -62,28 +61,27 @@ def test_get_user_donation(user_client, dead_pool_donation):
         'create_date',
     ])
     assert sorted(list(data.keys())) == keys, (
-        f'При получении списка донатов пользователя в ответе должны быть ключи `{keys}`'
+        f'При получении списка пожертвований пользователя в ответе должны быть ключи `{keys}`.'
     )
     assert response.json() == [{
         'comment': 'To you for chimichangas',
         'create_date': '2019-09-24T14:15:22',
         'full_amount': 1000000,
         'id': 1,
-    }], 'При получении списка донатов пользователя тело ответа API отличается от ожидаемого.'
+    }], 'При получении списка пожертвований пользователя тело ответа API отличается от ожидаемого.'
 
 
 def test_get_all_donations(superuser_client, donation):
     response = superuser_client.get('/donation/')
     assert response.status_code == 200, (
-        'При получении списка всех донатов должен возвращаться статус-код 200'
+        'При получении списка всех пожертвований должен возвращаться статус-код 200.'
     )
     assert isinstance(response.json(), list), (
-        'При получении списка всех донатов должен возвращаться объект типа `list`'
+        'При получении списка всех пожертвований  должен возвращаться объект типа `list`.'
     )
     assert len(response.json()) == 1, (
-        'При GET запросе для всех донатов список в ответе пуст. '
-        'Это означает что фикстура не создала запись в базе данных, '
-        'проверьте вашу модель `Donation`'
+        'При корректном POST-запросе к эндпоинту `/charity_project/` не создаётся объект в БД. '
+        'Проверьте модель `Donation`.'
     )
     data = response.json()[0]
     keys = sorted([
@@ -97,7 +95,7 @@ def test_get_all_donations(superuser_client, donation):
         'close_date',
     ])
     assert sorted(list(data.keys())) == keys, (
-        f'При получении списка всех донатов в ответе должны быть ключи `{keys}`'
+        f'При получении списка всех пожертвований в ответе должны быть ключи `{keys}`.'
     )
     data = response.json()
     data[0].pop('user_id')
@@ -109,4 +107,4 @@ def test_get_all_donations(superuser_client, donation):
         'fully_invested': False,
         'id': 1,
         'invested_amount': 0,
-    }], 'При получении списка всех донатов тело ответа API отличается от ожидаемого.'
+    }], 'При получении списка всех пожертвований тело ответа API отличается от ожидаемого.'
