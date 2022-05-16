@@ -48,7 +48,6 @@ def test_donation_create_project_doesnt_exists(superuser_client, donation):
     assert len(data_donation) == 1, (
         'Если получено пожертвование, но открытых проектов нет, '
         'вся сумма из пожертвования должна ожидать открытия нового проекта.'
-        
     )
     superuser_client.post('/charity_project/', json={
         'name': 'Мертвый Бассейн',

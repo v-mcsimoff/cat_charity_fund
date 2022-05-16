@@ -7,7 +7,7 @@ import pytest
     "invalid_name",
     [
         "",
-        "t" * 101,
+        "lovechimichangasbutnunchakuisbetternunchakis4life" * 3,
     ],
 )
 def test_create_invalid_project_name(superuser, test_client, invalid_name):
@@ -425,7 +425,7 @@ def test_patch_charity_project_fully_invested(
         "При обновлении проекта, который был полностью проинвестирован, "
         "в ответе должен быть ключ `detail`."
     )
-    assert data == {"detail": "Закрытый проект нельзя редактировать!",}, (
+    assert data == {"detail": "Закрытый проект нельзя редактировать!", }, (
         "При обновлении проекта, который был полностью "
         "проинвестирован, тело ответа API отличается от ожидаемого."
     )
@@ -449,7 +449,7 @@ def test_create_charity_project_same_name(superuser_client, charity_project):
         "При создании проекта с неуникальным именем "
         "в ответе должен быть ключ `detail`."
     )
-    assert data == {"detail": "Проект с таким именем уже существует!",}, (
+    assert data == {"detail": "Проект с таким именем уже существует!", }, (
         "При создании проекта с неуникальным именем "
         "тело ответа API отличается от ожидаемого."
     )
