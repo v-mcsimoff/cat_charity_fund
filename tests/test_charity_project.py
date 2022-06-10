@@ -1,5 +1,5 @@
-from app.models import CharityProject, Donation
-from sqlalchemy.future import select
+from datetime import datetime
+
 import pytest
 
 
@@ -8,24 +8,56 @@ import pytest
     [
         "",
         "lovechimichangasbutnunchakuisbetternunchakis4life" * 3,
+        None,
     ],
 )
-def test_create_invalid_project_name(superuser, test_client, invalid_name):
-    headers = {"Authorization": f"Bearer {superuser}"}
-
-    response = test_client.post(
-        "/charity_project/",
+def test_create_invalid_project_name(superuser_client, invalid_name):
+    response = superuser_client.post(
+        '/charity_project/',
         json={
             "name": invalid_name,
             "description": "Project_1",
             "full_amount": 5000,
         },
-        headers=headers,
     )
-
     assert (
         response.status_code == 422
-    ), "Нельзя создать проект с пустым названием или с названием длиннее 100 символов."
+    ), "Создание проектов с пустым названием или с названием длиннее 100 символов должно быть запрещено."
+
+
+@pytest.mark.parametrize(
+    'desc', [
+        '',
+        None,
+    ]
+)
+def test_create_project_no_desc(superuser_client, desc):
+    response = superuser_client.post(
+        '/charity_project/',
+        json={
+            'name': 'Мертвый Бассейн',
+            'description': desc,
+            'full_amount': 5000,
+        },
+    )
+    assert (
+        response.status_code == 422
+    ), 'Создание проектов с пустым описанием должно быть запрещено.'
+
+
+@pytest.mark.parametrize('json', [
+    {'invested_amount': 100},
+    {'fully_invested': True},
+    {'id': 5000},
+])
+def test_create_project_with_autofilling_fields(superuser_client, json):
+    response = superuser_client.post(
+        '/charity_project/',
+        json=json
+    )
+    assert (
+        response.status_code == 422
+    ), 'При попытке передать в запросе значения для автозаполняемых полей должна возвращаться ошибка 422.'
 
 
 @pytest.mark.parametrize(
@@ -35,28 +67,26 @@ def test_create_invalid_project_name(superuser, test_client, invalid_name):
         0.5,
         "test",
         0.0,
+        '',
+        None,
     ],
 )
-def test_create_invalid_full_amount_value(superuser, test_client, invalid_full_amount):
-    headers = {"Authorization": f"Bearer {superuser}"}
-
-    response = test_client.post(
+def test_create_invalid_full_amount_value(superuser_client, invalid_full_amount):
+    response = superuser_client.post(
         "/charity_project/",
         json={
             "name": "Project_1",
             "description": "Project_1",
             "full_amount": invalid_full_amount,
         },
-        headers=headers,
     )
-
     assert (
         response.status_code == 422
-    ), "Требуемая сумма (full_amount) проекта должна быть целочисленной и больше 0."
+    ), 'Требуемая сумма (full_amount) проекта должна быть целочисленной и больше 0.'
 
 
 def test_get_charity_project(user_client, charity_project):
-    response = user_client.get("/charity_project/")
+    response = user_client.get('/charity_project/')
     assert (
         response.status_code == 200
     ), "При GET-запросе к эндпоинту `/charity_project/` должен возвращаться статус-код 200."
@@ -77,7 +107,6 @@ def test_get_charity_project(user_client, charity_project):
             "invested_amount",
             "fully_invested",
             "create_date",
-            "close_date",
         ]
     )
     assert (
@@ -85,8 +114,7 @@ def test_get_charity_project(user_client, charity_project):
     ), f"При GET-запросе к эндпоинту `/charity_project/` в ответе API должны быть ключи `{keys}`."
     assert response.json() == [
         {
-            "close_date": "2019-08-24T14:15:22",
-            "create_date": "2019-08-24T14:15:22",
+            "create_date": "2010-10-10T00:00:00",
             "description": "Huge fan of chimichangas. Wanna buy a lot",
             "full_amount": 1000000,
             "fully_invested": False,
@@ -121,7 +149,6 @@ def test_get_all_charity_project(
             "invested_amount",
             "fully_invested",
             "create_date",
-            "close_date",
         ]
     )
     assert (
@@ -129,8 +156,7 @@ def test_get_all_charity_project(
     ), f"При запросе всех проектов в ответе API должны быть ключи `{keys}`."
     assert response.json() == [
         {
-            "close_date": "2019-08-24T14:15:22",
-            "create_date": "2019-08-24T14:15:22",
+            "create_date": "2010-10-10T00:00:00",
             "description": "Huge fan of chimichangas. Wanna buy a lot",
             "full_amount": 1000000,
             "fully_invested": False,
@@ -139,8 +165,7 @@ def test_get_all_charity_project(
             "name": "chimichangas4life",
         },
         {
-            "close_date": "2019-08-24T14:15:22",
-            "create_date": "2019-08-24T14:15:22",
+            "create_date": "2010-10-10T00:00:00",
             "description": "Nunchaku is better",
             "full_amount": 5000000,
             "fully_invested": False,
@@ -228,24 +253,9 @@ def test_create_charity_project_validation_error(json, superuser_client):
     ), "При некорректном создании проекта в ответе API должен быть ключ `detail`."
 
 
-def test_delete_project_non_superuser(test_client, simple_user, superuser):
-    headers = {"Authorization": f"Bearer {superuser}"}
-
-    test_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_1",
-            "description": "Project_1",
-            "full_amount": 5000,
-        },
-        headers=headers,
-    )
-
-    response = test_client.delete(
-        "/charity_project/1", headers={"Authorization": f"Bearer {simple_user}"}
-    )
-
-    assert response.status_code == 403, "Только суперпользователь может удалить проект."
+def test_delete_project_usual_user(user_client, charity_project):
+    response = user_client.delete('/charity_project/1')
+    assert response.status_code == 401, "Только суперпользователь может удалить проект."
 
 
 def test_delete_charity_project(superuser_client, charity_project):
@@ -276,8 +286,8 @@ def test_delete_charity_project(superuser_client, charity_project):
         "id": 1,
         "invested_amount": 0,
         "fully_invested": False,
-        "create_date": "2019-08-24T14:15:22",
-        "close_date": "2019-08-24T14:15:22",
+        "create_date": "2010-10-10T00:00:00",
+        "close_date": None,
     }, "При удалении проекта тело ответа API отличается от ожидаемого."
 
 
@@ -304,8 +314,8 @@ def test_delete_charity_project_invalid_id(superuser_client):
                 "id": 1,
                 "invested_amount": 0,
                 "fully_invested": False,
-                "create_date": "2019-08-24T14:15:22",
-                "close_date": "2019-08-24T14:15:22",
+                "close_date": None,
+                "create_date": "2010-10-10T00:00:00",
             },
         ),
         (
@@ -317,8 +327,8 @@ def test_delete_charity_project_invalid_id(superuser_client):
                 "id": 1,
                 "invested_amount": 0,
                 "fully_invested": False,
-                "create_date": "2019-08-24T14:15:22",
-                "close_date": "2019-08-24T14:15:22",
+                "close_date": None,
+                "create_date": "2010-10-10T00:00:00",
             },
         ),
         (
@@ -330,8 +340,8 @@ def test_delete_charity_project_invalid_id(superuser_client):
                 "id": 1,
                 "invested_amount": 0,
                 "fully_invested": False,
-                "create_date": "2019-08-24T14:15:22",
-                "close_date": "2019-08-24T14:15:22",
+                "close_date": None,
+                "create_date": "2010-10-10T00:00:00",
             },
         ),
     ],
@@ -362,18 +372,79 @@ def test_update_charity_project(superuser_client, charity_project, json, expecte
     ), "При обновлении проекта тело ответа API отличается от ожидаемого."
 
 
+@pytest.mark.parametrize('json', [
+    {'full_amount': 100},
+    {'full_amount': 1000},
+])
+def test_update_charity_project_full_amount_equal_invested_amount(superuser_client, charity_project_little_invested, json):
+    response = superuser_client.patch(
+        '/charity_project/1',
+        json=json,
+    )
+    assert (
+        response.status_code == 200
+    ), (
+        'При редактировании проекта должно быть разрешено устанавливать требуемую сумму больше или равную внесённой.'
+        'Должен возвращаться статус-код 200.'
+    )
+    assert response.json()['full_amount'] == json['full_amount'], (
+        'При редактировании проекта должно быть разрешено устанавливать требуемую сумму больше или равную внесённой. '
+        'Требуемая сумма не изменилась.'
+    )
+
+
 @pytest.mark.parametrize(
     "json",
     [
         {"desctiption": ""},
         {"name": ""},
         {"full_amount": ""},
+        {"invested_amount": 100},
+        {"create_date": '2010-10-10'},
+        {"close_date": '2010-10-10'},
+        {"fully_invested": True},
     ],
 )
 def test_update_charity_project_invalid(superuser_client, charity_project, json):
-    response = superuser_client.patch("/charity_project/1", json=json)
+    response = superuser_client.patch('/charity_project/1', json=json)
     assert response.status_code == 422, (
-        "При некорректном обновлении проекта должен возвращаться статус-код 422."
+        'При редактировании проекта нельзя назначать пустое имя, описание или цель фонда. '
+        'Должен возвращаться статус-код 422.'
+    )
+
+
+def test_update_charity_project_same_name(superuser_client, charity_project, charity_project_nunchaku):
+    response = superuser_client.patch(
+        '/charity_project/1',
+        json={
+            'name': 'nunchaku',
+            'description': 'Huge fan of chimichangas. Wanna buy a lot',
+            'full_amount': 1000000,
+        },
+    )
+    assert response.status_code == 400, (
+        'При редактировании проекта его новое имя должно быть уникальным.'
+    )
+    assert response.json() == {
+        'detail': 'Проект с таким именем уже существует!'
+    }
+
+
+@pytest.mark.parametrize('full_amount', [
+    0,
+    5,
+])
+def test_update_charity_project_full_amount_smaller_already_invested(superuser_client, charity_project_little_invested, full_amount):
+    response = superuser_client.patch(
+        '/charity_project/1',
+        json={
+            'name': 'nunchaku',
+            'description': 'Huge fan of chimichangas. Wanna buy a lot',
+            'invested_amount': full_amount,
+        },
+    )
+    assert response.status_code == 422, (
+        'При редактировании проекта должно быть запрещено устанавливать требуемую сумму меньше внесённой.'
     )
 
 
@@ -413,7 +484,7 @@ def test_patch_charity_project_usual_user(user_client):
 
 
 def test_patch_charity_project_fully_invested(
-    superuser_client, small_fully_charity_project
+    superuser_client, small_fully_charity_project,
 ):
     response = superuser_client.patch("/charity_project/1", json={"full_amount": 10})
     assert response.status_code == 400, (
@@ -435,9 +506,9 @@ def test_create_charity_project_same_name(superuser_client, charity_project):
     response = superuser_client.post(
         "/charity_project/",
         json={
-            "name": "chimichangas4life",
-            "description": "Huge fan of chimichangas. Wanna buy a lot",
-            "full_amount": 1000000,
+            'name': 'chimichangas4life',
+            'description': 'Huge fan of chimichangas. Wanna buy a lot',
+            'full_amount': 1000000,
         },
     )
     assert response.status_code == 400, (
@@ -449,344 +520,104 @@ def test_create_charity_project_same_name(superuser_client, charity_project):
         "При создании проекта с неуникальным именем "
         "в ответе должен быть ключ `detail`."
     )
-    assert data == {"detail": "Проект с таким именем уже существует!", }, (
+    assert data == {"detail": "Проект с таким именем уже существует!"}, (
         "При создании проекта с неуникальным именем "
         "тело ответа API отличается от ожидаемого."
     )
 
 
-async def test_projects_should_be_closed_after_donation(
-    superuser, user_client, session
-):
-    headers = {"Authorization": f"Bearer {superuser}"}
-    user_client.post(
+def test_create_charity_project_diff_time(superuser_client):
+    response_chimichangs = superuser_client.post(
         "/charity_project/",
         json={
-            "name": "Project_1",
-            "description": "Project_1",
+            'name': 'chimichangas4life',
+            'description': 'Huge fan of chimichangas. Wanna buy a lot',
+            'full_amount': 1000000,
+        },
+    )
+    response_nunchaku = superuser_client.post(
+        "/charity_project/",
+        json={
+            'name': 'nunchaku',
+            'description': 'Nunchaku is better',
+            'full_amount': 5000000,
+        },
+    )
+    chimichangas_create_date = response_chimichangs.json()['create_date']
+    nunchakus_create_date = response_nunchaku.json()['create_date']
+    assert chimichangas_create_date != nunchakus_create_date, (
+        'При создании двух проектов подряд время создания не отличается. '
+        'Проверьте значение по умолчанию у атрибута `create_date`'
+    )
+
+
+def test_donation_exist_project_create(superuser_client, donation):
+    response = superuser_client.post(
+        "/charity_project/",
+        json={
+            "name": "Мертвый Бассейн",
+            "description": "Deadpool inside",
             "full_amount": 100,
         },
-        headers=headers,
+    )
+    data = response.json()
+    assert data['fully_invested'], (
+        'Если новая требуемая сумма равна уже внесённой - проект должен быть закрыт. '
+        'В такой ситуации должно устанавливаться `fully_invested=True`.'
+    )
+    assert data['close_date'] == datetime.now().strftime('%Y-%m-%dT%H:%M:%S'), (
+        'Если новая требуемая сумма равна уже внесённой - проект должен быть закрыт. '
+        'В такой ситуации должно устанавливаться `close_date=<текущее время>`.'
     )
 
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_2",
-            "description": "Project_2",
-            "full_amount": 100,
+
+def test_delete_charity_project_already_invested(superuser_client, charity_project_little_invested):
+    response = superuser_client.delete('/charity_project/1')
+    assert response.status_code == 400, (
+        'Удаление проектов, в которые уже внесены средства, должно быть запрещено. '
+        'Статус-код ответа отличается от ожидаемого.'
+    )
+    assert response.json()['detail'] == 'В проект были внесены средства, не подлежит удалению!', (
+        'Удаление проектов, в которые уже внесены средства, должно быть запрещено. '
+        'Тело ответа отличается от ожидаемого.'
+    )
+
+
+def test_delete_charity_project_already_closed(superuser_client, closed_charity_project):
+    response = superuser_client.delete('/charity_project/1')
+    assert response.status_code == 400, (
+        'Удаление закрытых проектов должно быть запрещено. '
+        'Статус-код ответа отличается от ожидаемого.'
+    )
+    assert response.json()['detail'] == 'В проект были внесены средства, не подлежит удалению!', (
+        'Удаление закрытых проектов должно быть запрещено. '
+        'Тело ответа отличается от ожидаемого.'
+    )
+
+
+def test_get_all_charity_project_not_auth_user(test_client, charity_project, charity_project_nunchaku):
+    response = test_client.get("/charity_project/")
+    assert response.status_code == 200, (
+        'Список проектов должен быть доступен даже неавторизованному пользователю.'
+    )
+    data = response.json()
+    assert data == [
+        {
+            'create_date': '2010-10-10T00:00:00',
+            'description': 'Huge fan of chimichangas. Wanna buy a lot',
+            'full_amount': 1000000,
+            'fully_invested': False,
+            'id': 1,
+            'invested_amount': 0,
+            'name': 'chimichangas4life'
         },
-        headers=headers,
-    )
-
-    user_client.post("/donation/", json={"full_amount": 50, "comment": "donation_1"})
-
-    user_client.post("/donation/", json={"full_amount": 50, "comment": "donation_2"})
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 1)
-    )
-    charity_project_closed = result.scalars().first()
-    await session.refresh(charity_project_closed)
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 2)
-    )
-    charity_project_open = result.scalars().first()
-    await session.refresh(charity_project_open)
-
-    assert (
-        charity_project_closed.fully_invested is True
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-    assert (
-        charity_project_open.fully_invested is False
-    ), "Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-
-
-async def test_all_projects_fully_invested(superuser, user_client, session):
-    headers = {"Authorization": f"Bearer {superuser}"}
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_1",
-            "description": "Project_1",
-            "full_amount": 100,
-        },
-        headers=headers,
-    )
-
-    user_client.post("/donation/", json={"full_amount": 200, "comment": "donation_1"})
-
-    user_client.post("/donation/", json={"full_amount": 200, "comment": "donation_2"})
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 1)
-    )
-
-    first_charity_project_closed = result.scalars().first()
-
-    result = await session.execute(select(Donation).filter(Donation.id == 1))
-
-    first_donation_amount = result.scalars().first()
-
-    assert (
-        first_charity_project_closed.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-    assert (
-        first_donation_amount.invested_amount == 100
-    ), f"Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_2",
-            "description": "Project_2",
-            "full_amount": 150,
-        },
-        headers=headers,
-    )
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 2)
-    )
-    second_charity_project_closed = result.scalars().first()
-
-    await session.refresh(first_donation_amount)
-
-    assert (
-        first_donation_amount.fully_invested is True
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-    assert (
-        second_charity_project_closed.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_3",
-            "description": "Project_3",
-            "full_amount": 150,
-        },
-        headers=headers,
-    )
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 3)
-    )
-    third_charity_project_closed = result.scalars().first()
-
-    result = await session.execute(select(Donation).filter(Donation.id == 2))
-
-    second_donation_amount = result.scalars().first()
-    await session.refresh(first_donation_amount)
-
-    assert (
-        third_charity_project_closed.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-    assert (
-        second_donation_amount.fully_invested is True
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-
-
-async def test_all_projects_fully_invested_and_donations_closed(
-    superuser, user_client, session
-):
-    headers = {"Authorization": f"Bearer {superuser}"}
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_1",
-            "description": "Project_1",
-            "full_amount": 333,
-        },
-        headers=headers,
-    )
-
-    user_client.post("/donation/", json={"full_amount": 100, "comment": "donation_1"})
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 1)
-    )
-
-    first_charity_project = result.scalars().first()
-
-    result = await session.execute(select(Donation).filter(Donation.id == 1))
-
-    first_donation_amount = result.scalars().first()
-    await session.refresh(first_donation_amount)
-
-    assert (
-        first_charity_project.invested_amount == 100
-    ), "Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-    assert (
-        first_donation_amount.fully_invested is True
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-
-    user_client.post("/donation/", json={"full_amount": 100, "comment": "donation_2"})
-
-    result = await session.execute(select(Donation).filter(Donation.id == 2))
-
-    second_donation_amount = result.scalars().first()
-    await session.refresh(second_donation_amount)
-
-    await session.refresh(first_charity_project)
-    await session.refresh(second_donation_amount)
-
-    assert (
-        first_charity_project.invested_amount == 200
-    ), "Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-    assert (
-        second_donation_amount.fully_invested is True
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-
-    user_client.post("/donation/", json={"full_amount": 200, "comment": "donation_3"})
-
-    result = await session.execute(select(Donation).filter(Donation.id == 3))
-
-    third_donation_amount = result.scalars().first()
-    await session.refresh(third_donation_amount)
-    await session.refresh(first_charity_project)
-
-    assert (
-        first_charity_project.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-    assert (
-        third_donation_amount.invested_amount == 133
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-    assert (
-        third_donation_amount.fully_invested is False
-    ), (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_2",
-            "description": "Project_2",
-            "full_amount": 100,
-        },
-        headers=headers,
-    )
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 2)
-    )
-
-    second_charity_project = result.scalars().first()
-    await session.refresh(second_charity_project)
-    await session.refresh(third_donation_amount)
-
-    assert (
-        second_charity_project.fully_invested is False
-    ), "Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-    assert second_charity_project.invested_amount == 67, (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-    assert (
-        third_donation_amount.fully_invested is True
-    ), "Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-
-    user_client.post("/donation/", json={"full_amount": 500, "comment": "donation_4"})
-
-    result = await session.execute(select(Donation).filter(Donation.id == 4))
-
-    fourth_donation_amount = result.scalars().first()
-    await session.refresh(fourth_donation_amount)
-    await session.refresh(second_charity_project)
-
-    assert (
-        second_charity_project.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-    assert (
-        fourth_donation_amount.invested_amount == 33
-    ), f"Проверьте, что сумма пожертвования уходит в проект, открытый раньше других."
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_3",
-            "description": "Project_3",
-            "full_amount": 300,
-        },
-        headers=headers,
-    )
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 3)
-    )
-
-    third_charity_project = result.scalars().first()
-    await session.refresh(third_charity_project)
-    await session.refresh(fourth_donation_amount)
-
-    assert (
-        third_charity_project.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-    assert fourth_donation_amount.invested_amount == 333, (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
-
-    user_client.post(
-        "/charity_project/",
-        json={
-            "name": "Project_4",
-            "description": "Project_4",
-            "full_amount": 167,
-        },
-        headers=headers,
-    )
-
-    result = await session.execute(
-        select(CharityProject).filter(CharityProject.id == 4)
-    )
-
-    fourth_charity_project = result.scalars().first()
-    await session.refresh(fourth_charity_project)
-    await session.refresh(fourth_donation_amount)
-
-    assert (
-        fourth_charity_project.fully_invested is True
-    ), "Проверьте, что при достижении требуемой суммы проект закрывается: для поля `fully_invested` устанавливается True."
-    assert fourth_donation_amount.invested_amount == 500, (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно:"
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем — из последующего."
-    )
-    assert fourth_donation_amount.fully_invested is True, (
-        "Проверьте, что сумма пожертвования правильно передаётся в проект;"
-        "\nпроверьте, что пожертвования обрабатываются последовательно: "
-        "сперва полностью распределяется сумма из предыдущего пожертвования, затем - из последующего."
-    )
+        {
+            'create_date': '2010-10-10T00:00:00',
+            'description': 'Nunchaku is better',
+            'full_amount': 5000000,
+            'fully_invested': False,
+            'id': 2,
+            'invested_amount': 0,
+            'name': 'nunchaku'
+        }
+    ]
