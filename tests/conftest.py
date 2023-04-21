@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 try:
-    from app.main import app
+    from app.main import app  # noqa
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружен объект приложения `app`.'
@@ -16,27 +16,30 @@ except (NameError, ImportError):
     )
 
 try:
-    from app.core.db import Base, get_async_session
+    from app.core.db import Base, get_async_session  # noqa
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружены объекты `Base, get_async_session`. '
-        'Проверьте и поправьте: они должны быть доступны в модуле `app.core.db`.',
+        'Проверьте и поправьте: они должны быть доступны в модуле '
+        '`app.core.db`.',
     )
 
 try:
-    from app.core.user import current_superuser, current_user
+    from app.core.user import current_superuser, current_user  # noqa
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружены объекты `current_superuser, current_user`.'
-        'Проверьте и поправьте: они должны быть доступны в модуле `app.code.user`',
+        'Проверьте и поправьте: они должны быть доступны в модуле '
+        '`app.code.user`',
     )
 
 try:
-    from app.schemas.user import UserCreate
+    from app.schemas.user import UserCreate  # noqa
 except (NameError, ImportError):
     raise AssertionError(
         'Не обнаружена схема создания пользователя UserCreate. '
-        'Проверьте и поправьте: она должна быть доступна в модуле `app.schemas.user`.',
+        'Проверьте и поправьте: она должна быть доступна в модуле '
+        '`app.schemas.user`.',
     )
 
 
@@ -51,7 +54,7 @@ TEST_DB = BASE_DIR / 'test.db'
 SQLALCHEMY_DATABASE_URL = f'sqlite+aiosqlite:///{str(TEST_DB)}'
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    connect_args={'check_same_thread': False},
 )
 TestingSessionLocal = sessionmaker(
     class_=AsyncSession, autocommit=False, autoflush=False, bind=engine,
