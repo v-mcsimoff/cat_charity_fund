@@ -1,8 +1,8 @@
-"""First migration
+"""Changed module name to models.charity_project
 
-Revision ID: b6c461e3700b
+Revision ID: a54641171c90
 Revises: 
-Create Date: 2023-08-08 18:48:29.842318
+Create Date: 2023-08-08 19:50:17.118237
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b6c461e3700b'
+revision = 'a54641171c90'
 down_revision = None
 branch_labels = None
 depends_on = None
