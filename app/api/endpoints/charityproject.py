@@ -77,7 +77,7 @@ async def partially_update_charityproject(
         charityproject, obj_in, session
     )
     return charityproject
-    
+
 
 @router.delete(
     '/{charityproject_id}',
