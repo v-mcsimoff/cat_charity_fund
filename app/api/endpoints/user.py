@@ -31,4 +31,4 @@ def delete_user(id: str):
     raise HTTPException(
         status_code=405,
         detail="Удаление пользователей запрещено!"
-    ) 
+    )

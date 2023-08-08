@@ -18,7 +18,7 @@ async def check_name_duplicate(
             detail='Проект с таким названием уже существует!',
         )
 
-        
+
 async def check_charityproject_exists(
         charityproject_id: int,
         session: AsyncSession,

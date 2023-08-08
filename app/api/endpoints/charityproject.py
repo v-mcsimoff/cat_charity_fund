@@ -19,7 +19,7 @@ router = APIRouter()
 
 
 @router.post(
-        '/',
+    '/',
     response_model=CharityProjectDB,
     response_model_exclude_none=True,
     dependencies=[Depends(current_superuser)],
@@ -68,8 +68,8 @@ async def partially_update_charityproject(
     )
     if obj_in.full_amount:
         charityproject = check_charityproject_before_edit(
-        charityproject_id, obj_in.full_amount, session
-    )
+            charityproject_id, obj_in.full_amount, session
+        )
     if obj_in.name:
         await check_name_duplicate(obj_in.name, session)
 

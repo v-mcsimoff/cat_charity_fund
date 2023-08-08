@@ -49,14 +49,14 @@ async def get_all_donations(session: AsyncSession = Depends(get_async_session)):
 
 
 @router.get(
-        '/my',
-        response_model=list[DonationDB],
-        response_model_exclude={'user_id'},
-    )
+    '/my',
+    response_model=list[DonationDB],
+    response_model_exclude={'user_id'},
+)
 async def get_my_donations(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user)
-    ):
+):
     """Получает список всех бронирований для текущего пользователя."""
     donations = await donation_crud.get_by_user(
         session=session, user=user
@@ -67,14 +67,14 @@ async def get_my_donations(
 @router.delete('/{donation_id}', deprecated=True)
 def delete_donation(donation_id: int):
     raise HTTPException(
-        status_code = 404,
-        detail = 'Удаление пожертвований запрещено!'
+        status_code=404,
+        detail='Удаление пожертвований запрещено!'
     )
 
 
 @router.patch('/{donation_id}', deprecated=True)
 def update_donation(donation_id: int):
     raise HTTPException(
-        status_code = 404,
-        detail = 'Изменение пожертвований запрещено!'
+        status_code=404,
+        detail='Изменение пожертвований запрещено!'
     )

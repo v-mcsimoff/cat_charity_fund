@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,8 +26,7 @@ class CRUDDonation(CRUDBase):
         donations = await session.execute(select_stmt)
         donations = donations.scalars().all()
         return donations
-    
-    
+
     async def get_by_user(
             self,
             user: User,
