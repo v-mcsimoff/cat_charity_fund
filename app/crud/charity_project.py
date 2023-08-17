@@ -9,18 +9,18 @@ from app.models import CharityProject
 
 class CRUDCharityProject(CRUDBase):
 
-    async def get_charityproject_id_by_name(
+    async def get_charity_project_id_by_name(
             self,
-            charityproject_name: str,
+            charity_project_name: str,
             session: AsyncSession,
     ) -> Optional[int]:
-        db_charityproject_id = await session.execute(
+        db_charity_project_id = await session.execute(
             select(CharityProject.id).where(
-                CharityProject.name == charityproject_name
+                CharityProject.name == charity_project_name
             )
         )
-        db_charityproject_id = db_charityproject_id.scalars().first()
-        return db_charityproject_id
+        db_charity_project_id = db_charity_project_id.scalars().first()
+        return db_charity_project_id
 
 
-charityproject_crud = CRUDCharityProject(CharityProject)
+charity_project_crud = CRUDCharityProject(CharityProject)

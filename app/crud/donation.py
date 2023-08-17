@@ -9,15 +9,15 @@ from app.models import Donation, User
 
 class CRUDDonation(CRUDBase):
 
-    async def get_donations_by_charityproject(
+    async def get_donations_by_charity_project(
             self,
             *,
-            charityproject_id: int,
+            charity_project_id: int,
             donation_id: Optional[int] = None,
             session: AsyncSession,
     ) -> list[Donation]:
         select_stmt = select(Donation).where(
-            Donation.charityproject_id == charityproject_id,
+            Donation.charity_project_id == charity_project_id,
         )
         if donation_id is not None:
             select_stmt = select_stmt.where(
