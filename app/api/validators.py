@@ -59,7 +59,7 @@ async def check_invested_amount_is_null(
     if charity_project.invested_amount != 0:
         raise HTTPException(
             status_code=400,
-            detail='Невозможно удалить проект с внесёнными пожертвованиями'
+            detail='В проект были внесены средства, не подлежит удалению!'
         )
 
 
@@ -68,5 +68,5 @@ async def check_fully_invested(charity_project_id: int, session: AsyncSession):
     if charity_project.fully_invested:
         raise HTTPException(
             status_code=400,
-            detail='Закрытый проект нельзя редактировать!'
+            detail='В проект были внесены средства, не подлежит удалению!'
         )
