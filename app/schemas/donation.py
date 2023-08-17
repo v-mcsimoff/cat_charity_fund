@@ -1,12 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, Extra, PositiveInt
 from sqlalchemy.orm import validates
 
 
 class DonationBase(BaseModel):
-    full_amount: Optional[int]
+    full_amount: Optional[PositiveInt]
     comment: Optional[str]
 
     class Config:
