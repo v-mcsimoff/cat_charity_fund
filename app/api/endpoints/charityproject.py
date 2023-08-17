@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,12 +38,14 @@ async def create_new_charityproject(
         crud_class=donation_crud,
         session=session
     )
+    await session.commit()
+    await session.refresh(new_charityproject)
     return new_charityproject
 
 
 @router.get(
     '/',
-    response_model=list[CharityProjectDB],
+    response_model=List[CharityProjectDB],
     response_model_exclude_none=True,
 )
 async def get_all_charityprojects(session: AsyncSession = Depends(get_async_session)):
