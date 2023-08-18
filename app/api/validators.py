@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.charity_project import charity_project_crud
 from app.models import CharityProject
+from app.schemas.charity_project import CharityProjectUpdate
 
 
 async def check_name_duplicate(
@@ -35,19 +38,17 @@ async def check_charity_project_exists(
 async def check_charity_project_before_edit(
         charity_project_id: int,
         full_amount: int,
-        session: AsyncSession,
-):
-    charity_project = await charity_project_crud.get(
-        obj_id=charity_project_id, session=session,
-    )
+        session: AsyncSession) -> CharityProject:
+    charity_project = await charity_project_crud.get(charity_project_id, session)
     if charity_project.invested_amount:
-        if charity_project.invested_amount > full_amount:
+        if charity_project.invested_amount < full_amount:
             raise HTTPException(
-                status_code=400,
+                status_code=422,
                 detail='Внесённая сумма должна быть больше новой!'
             )
         if charity_project.invested_amount == full_amount:
             charity_project.fully_invested = True
+            charity_project.close_date = datetime.datetime.now
     return charity_project
 
 
