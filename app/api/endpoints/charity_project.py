@@ -69,7 +69,7 @@ async def partially_update_charity_project(
     )
     await check_fully_invested(charity_project_id, session)
     await check_charity_project_before_edit(
-        full_amount=charity_project.full_amount,
+        full_amount=obj_in.full_amount,
         charity_project_id=charity_project_id,
         session=session
     )
