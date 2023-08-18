@@ -40,7 +40,7 @@ async def check_charity_project_before_edit(
         session: AsyncSession) -> CharityProject:
     charity_project = await charity_project_crud.get(charity_project_id, session)
     if charity_project.invested_amount:
-        if charity_project.invested_amount < full_amount:
+        if charity_project.invested_amount > full_amount:
             raise HTTPException(
                 status_code=422,
                 detail='Внесённая сумма должна быть больше новой!'
