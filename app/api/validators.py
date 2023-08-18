@@ -68,5 +68,5 @@ async def check_fully_invested(charity_project_id: int, session: AsyncSession) -
     if charity_project.fully_invested:
         raise HTTPException(
             status_code=400,
-            detail='В проект были внесены средства, не подлежит удалению!'
+            detail='Закрытый проект нельзя редактировать!'
         )
