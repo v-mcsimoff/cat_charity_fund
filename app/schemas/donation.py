@@ -14,7 +14,7 @@ class DonationBase(BaseModel):
 
 
 class DonationCreate(DonationBase):
-    full_amount: int
+    full_amount: PositiveInt
 
 
 class DonationDB(DonationBase):
