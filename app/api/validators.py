@@ -45,10 +45,6 @@ async def check_charity_project_before_edit(
                 status_code=422,
                 detail='Внесённая сумма должна быть больше новой!'
             )
-    if charity_project.invested_amount == obj_in.full_amount:
-        charity_project.fully_invested = True
-        charity_project.close_date = datetime.datetime.now
-    return charity_project
 
 
 async def check_invested_amount_is_null(
