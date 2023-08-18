@@ -35,8 +35,10 @@ async def check_charity_project_exists(
     return charity_project
 
 
-async def check_charity_project_before_edit(charity_project: CharityProject,
-        obj_in: CharityProjectUpdate) -> CharityProject:
+async def check_charity_project_before_edit(
+    charity_project: CharityProject,
+    obj_in: CharityProjectUpdate
+) -> CharityProject:
     if charity_project.invested_amount > obj_in.full_amount:
         raise HTTPException(
             status_code=422,
