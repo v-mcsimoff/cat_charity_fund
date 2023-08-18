@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,16 +35,16 @@ async def check_charity_project_exists(
     return charity_project
 
 
-async def check_charity_project_before_edit(
-    charity_project: CharityProject,
-    obj_in: CharityProjectUpdate
-) -> None:
-    if obj_in.full_amount:
-        if obj_in.full_amount < charity_project.invested_amount:
-            raise HTTPException(
-                status_code=422,
-                detail='Внесённая сумма должна быть больше новой!'
-            )
+async def check_charity_project_before_edit(charity_project: CharityProject,
+        obj_in: CharityProjectUpdate) -> CharityProject:
+    if charity_project.invested_amount > obj_in.full_amount:
+        raise HTTPException(
+            status_code=422,
+            detail='Внесённая сумма должна быть больше новой!')
+    if charity_project.invested_amount == obj_in.full_amount:
+        charity_project.fully_invested = True
+        charity_project.close_date = datetime.datetime.now()
+    return charity_project
 
 
 async def check_invested_amount_is_null(
