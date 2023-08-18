@@ -63,7 +63,7 @@ async def check_invested_amount_is_null(
         )
 
 
-async def check_fully_invested(charity_project_id: int, session: AsyncSession):
+async def check_fully_invested(charity_project_id: int, session: AsyncSession) -> None:
     charity_project = await charity_project_crud.get(charity_project_id, session)
     if charity_project.fully_invested:
         raise HTTPException(

@@ -67,8 +67,12 @@ async def partially_update_charity_project(
     charity_project = await check_charity_project_exists(
         charity_project_id, session
     )
-    await check_fully_invested(charity_project, obj_in)
-    await check_charity_project_before_edit(charity_project)
+    await check_fully_invested(charity_project_id, session)
+    await check_charity_project_before_edit(
+        full_amount=charity_project.full_amount,
+        charity_project_id=charity_project_id,
+        session=session
+    )
     await check_name_duplicate(obj_in.name, session)
 
     charity_project = await charity_project_crud.update(
