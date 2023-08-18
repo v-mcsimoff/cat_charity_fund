@@ -47,7 +47,6 @@ async def check_charity_project_before_edit(
             )
         if charity_project.invested_amount == full_amount:
             charity_project.fully_invested = True
-            charity_project.close_date = datetime.datetime.now()
         return charity_project
 
 
