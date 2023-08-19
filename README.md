@@ -50,6 +50,27 @@ python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+Создать и заполнить файл конфигурации .env по предоставленному шаблону:  
+```  
+APP_TITLE=Название Приложения
+DESCRIPTION=Описание Приложения
+DATABASE_URL=sqlite+aiosqlite:///./fastapi.db
+SECRET=Ваш секретный ключ для генерации паролей
+```  
+
+Создайте файлы миграций и примените их:  
+```  
+alembic revision --autogenerate
+```
+```  
+alembic upgrade head
+```  
+
+Через командную строку запустите проект:  
+```  
+uvicorn app.main:app --reload 
+```  
+
 ### Используемые технологии
 
 - Python
