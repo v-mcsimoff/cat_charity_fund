@@ -4,7 +4,7 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    app_title: str = 'Фонд поддержки котиков'
+    app_title: str = 'Cat Charity Fund'
     database_url: str = 'sqlite+aiosqlite:///./qrkot.db'
     secret: str = 'SECRET'
     type: Optional[str] = None
