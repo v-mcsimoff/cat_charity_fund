@@ -1,26 +1,26 @@
-### Основные команды Alembic
+### Alembic basic commands
 
-- Инициализация проекта:
+- Project Initialization:
 ```
 alembic init alembic
 ```
 
-- Создание новой миграции:
+- Creation of a new migration:
 ```
 alembic revision -m "описание миграции"
 ```
 
-- Применение миграции:
+- Migration application:
 ```
 alembic upgrade head
 ```
 
-- Откат миграции на предыдущую:
+- Migration Downgrade:
 ```
 alembic downgrade -1
 ```
 
-- Создание автоматической миграции:
+- Create an automatic migration:
 ```
-alembic revision --autogenerate -m "описание автоматической миграции"
+alembic revision --autogenerate -m "automatic migration description"
 ```
