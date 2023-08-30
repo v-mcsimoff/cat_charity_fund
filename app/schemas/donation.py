@@ -28,7 +28,7 @@ class DonationDB(DonationBase):
     @validates("full_amount")
     def validate_full_amount(self, key, full_amount):
         if full_amount < self.invested_amount:
-            raise ValueError("Невозможно установить сумму меньше вложенной ранее")
+            raise ValueError("Unable to set an amount less than the amount previously invested")
         return full_amount
 
     class Config:
