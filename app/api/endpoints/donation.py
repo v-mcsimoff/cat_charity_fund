@@ -46,7 +46,7 @@ async def create_donation(
     response_model_exclude_none=True,
 )
 async def get_all_donations(session: AsyncSession = Depends(get_async_session)):
-    """Только для суперюзеров."""
+    """For superusers only."""
     all_donations = await donation_crud.get_multi(session)
     return all_donations
 
@@ -62,7 +62,7 @@ async def get_my_donations(
     session: AsyncSession = Depends(get_async_session),
     user: User = Depends(current_user)
 ):
-    """Получает список всех бронирований для текущего пользователя."""
+    """Gets a list of all donations for the current user."""
     donations = await donation_crud.get_by_user(
         session=session, user=user
     )
@@ -73,7 +73,7 @@ async def get_my_donations(
 def delete_donation(donation_id: int):
     raise HTTPException(
         status_code=404,
-        detail='Удаление пожертвований запрещено!'
+        detail='Deletion of donations is forbidden!'
     )
 
 
@@ -81,5 +81,5 @@ def delete_donation(donation_id: int):
 def update_donation(donation_id: int):
     raise HTTPException(
         status_code=404,
-        detail='Изменение пожертвований запрещено!'
+        detail='Changing donations is forbidden!'
     )
