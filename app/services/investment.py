@@ -13,7 +13,7 @@ async def entry_to_db(object: Base, session: AsyncSession) -> Base:
         await session.refresh(object)
         return object
     else:
-        raise ValueError('Тип объекта не поддерживается')
+        raise ValueError('Object type is not supported')
 
 
 def close_object(object: Base) -> None:
