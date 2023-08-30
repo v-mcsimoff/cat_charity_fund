@@ -1,21 +1,21 @@
-# QRKot
+# QRCat
 
-Приложение для Благотворительного фонда поддержки котиков. 
+Application for a Cat Charity Fund. 
 
-### Описание:
+### Description:
 
-Фонд собирает пожертвования на различные целевые проекты: на медицинское обслуживание нуждающихся хвостатых, на обустройство кошачьей колонии в подвале, на корм оставшимся без попечения кошкам — на любые цели, связанные с поддержкой кошачьей популяции.
+The Fund gathers donations for various targeted projects: for medical care of poor cats, for setting up a cat colony, for food for abandoned cats - for any purpose related to the support of the cat population.
 
-Каждый пользователь может сделать пожертвование и сопроводить его комментарием. Пожертвования не целевые: они вносятся в фонд, а не в конкретный проект. Каждое полученное пожертвование автоматически добавляется в первый открытый проект, который ещё не набрал нужную сумму. Если пожертвование больше нужной суммы или же в Фонде нет открытых проектов — оставшиеся деньги ждут открытия следующего проекта. При создании нового проекта все неинвестированные пожертвования автоматически вкладываются в новый проект.
+Each user can make a donation and include a comment with it. Donations are not targeted: they are made to a fund, not to a specific project. Each donation received is automatically added to the first open project that has not yet reached the required amount. If the donation is more than the required amount or there are no open projects in the Fund, the remaining money is waiting for the next project to be opened. When a new project is created, all uninvested donations are automatically invested in the new project.
 
-Доступ к приложению предоставляется через API.
+Access to the application is provided via API.
 
-В приложении реализована возможность формирования отчёта в гугл-таблице. В таблице отображаюися закрытые проекты, отсортированные по скорости сбора средств — от тех, что закрылись быстрее всего, до тех, что долго собирали нужную сумму.
+The application has the feature of generating a report in Google Sheets. The table displays closed projects sorted by the speed of fundraising - from those that closed the fastest to those that took a long time to raise the required amount.
 
 
-### Запуск проекта
+### How to launch the project
 
-Клонировать репозиторий и перейти в него в командной строке:
+Clone the repository and access it on the command line:
 
 ```
 git clone 
@@ -25,25 +25,25 @@ git clone
 cd cat_charity_fund
 ```
 
-Cоздать и активировать виртуальное окружение:
+Create and activate the virtual environment:
 
 ```
 python3 -m venv venv
 ```
 
-* Если у вас Linux/macOS
+* For Linux/macOS
 
     ```
     source venv/bin/activate
     ```
 
-* Если у вас windows
+* For Windows
 
     ```
     source venv/scripts/activate
     ```
 
-Установить зависимости из файла requirements.txt:
+Install dependencies from the requirements.txt file:
 
 ```
 python3 -m pip install --upgrade pip
@@ -53,15 +53,15 @@ python3 -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Создать и заполнить файл конфигурации .env по предоставленному шаблону:  
+Create and fill in the .env configuration file using the template provided:  
 ```  
-APP_TITLE=Название Приложения
-DESCRIPTION=Описание Приложения
+APP_TITLE=Application name
+DESCRIPTION=Application description
 DATABASE_URL=sqlite+aiosqlite:///./fastapi.db
-SECRET=Ваш секретный ключ для генерации паролей
+SECRET=Your secret key for generating passwords
 ```  
 
-Создайте файлы миграций и примените их:  
+Create migration files and apply them:  
 ```  
 alembic revision --autogenerate
 ```
@@ -69,12 +69,12 @@ alembic revision --autogenerate
 alembic upgrade head
 ```  
 
-Через командную строку запустите проект:  
+Use the command line to start the project:  
 ```  
 uvicorn app.main:app --reload 
 ```  
 
-### Используемые технологии
+### Technologies
 
 - Python
 - SQLAlchemy
@@ -82,5 +82,5 @@ uvicorn app.main:app --reload
 - Alembic
 - Google API
 
-### Автор
-Владимир Максимов
+### Author
+Vladimir Maksimov
