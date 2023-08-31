@@ -76,10 +76,10 @@ uvicorn app.main:app --reload
 
 ### Technologies
 
-- Python
-- SQLAlchemy
+- Python 3.9
+- SQLAlchemy 1.4
 - FastAPI
-- Alembic
+- Alembic 1.7
 - Google API
 
 ### Author
