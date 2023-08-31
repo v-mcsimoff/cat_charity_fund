@@ -83,4 +83,4 @@ uvicorn app.main:app --reload
 - Google API
 
 ### Author
-Vladimir Maksimov
+Vladimir Maksimov 
